@@ -15,6 +15,12 @@ export const register = async (req: Request, res: Response) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return res.status(400).json({ message: 'Email already registered' });
 
+  // Limit to one account per role
+  const existingRole = await prisma.user.findFirst({ where: { role } });
+  if (existingRole) {
+    return res.status(400).json({ message: `A user with the ${role} role already exists.` });
+  }
+
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: { email, passwordHash, name, role, bio, avatarUrl },
