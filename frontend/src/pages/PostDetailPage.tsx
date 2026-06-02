@@ -6,6 +6,7 @@ import Loader from '@/components/shared/Loader';
 import Avatar from '@/components/shared/Avatar';
 import StatusBadge from '@/components/posts/StatusBadge';
 import CommentThread from '@/components/posts/CommentThread';
+import AISummary from '@/components/posts/AISummary';
 
 const PostDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -22,7 +23,8 @@ const PostDetailPage: React.FC = () => {
 
   const isAuthor = user?.id === post.authorId;
   const isFounder = user?.role === 'FOUNDER' || user?.role === 'ADMIN';
-  const canEdit = isAuthor || isFounder;
+  const isDepartmentMember = (user as any)?.departmentId === post.departmentId && post.departmentId != null;
+  const canEdit = isAuthor || isFounder || isDepartmentMember;
 
   const handleDelete = async () => {
     if (confirm('Delete this post permanently?')) {
@@ -48,10 +50,28 @@ const PostDetailPage: React.FC = () => {
       <div className="card p-6 lg:p-8 animate-in">
         {/* Header Metadata */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="badge bg-gray-100 text-gray-600">{post.category.replace('_', ' ')}</span>
             <StatusBadge status={post.status} />
             <span className="text-xs font-medium text-gray-400">PRIORITY: {post.priority}</span>
+            
+            {post.department && (
+              <span className="badge bg-purple-100 text-purple-700 border border-purple-200">
+                {post.department.name}
+              </span>
+            )}
+
+            {post.workflowMetrics?.slaStatus === 'BREACHED' && (
+              <span className="badge bg-red-100 text-red-700 animate-pulse border border-red-300">
+                🚨 SLA BREACHED
+              </span>
+            )}
+            
+            {post.workflowMetrics?.slaStatus === 'AT_RISK' && (
+              <span className="badge bg-orange-100 text-orange-700 border border-orange-300">
+                ⚠️ SLA AT RISK
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3">
             {canEdit && (
@@ -60,10 +80,12 @@ const PostDetailPage: React.FC = () => {
                 value={post.status}
                 onChange={handleStatusChange}
               >
-                <option value="OPEN">Open</option>
+                <option value="BACKLOG">Backlog</option>
+                <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="IN_REVIEW">In Review</option>
+                <option value="BLOCKED">Blocked</option>
+                <option value="DONE">Done</option>
               </select>
             )}
             {canEdit && (
@@ -126,6 +148,9 @@ const PostDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Summary Section */}
+      <AISummary postId={post.id} initialSummary={post.workflowMetrics?.aiSummaryCache} />
 
       {/* Discussion Thread */}
       <div className="card p-6 lg:p-8">

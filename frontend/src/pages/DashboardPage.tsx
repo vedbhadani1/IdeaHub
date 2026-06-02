@@ -30,7 +30,7 @@ const DashboardPage: React.FC = () => {
     fetchFeed();
   }, [fetchFeed]);
 
-  const openCount = feed.filter((p) => p.status === 'OPEN').length;
+  const openCount = feed.filter((p) => p.status === 'TODO' || p.status === 'BACKLOG').length;
   const inProgressCount = feed.filter((p) => p.status === 'IN_PROGRESS').length;
   const ideaCount = feed.filter((p) => p.category === 'IDEA').length;
   const assignedCount = feed.filter((p) => p.assigneeId === user?.id).length;

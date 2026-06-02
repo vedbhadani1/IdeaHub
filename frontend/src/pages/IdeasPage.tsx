@@ -26,10 +26,10 @@ const IdeasPage: React.FC = () => {
     fetchFeed({ category });
   };
 
-  const myIdeas = ideas.filter((i) => i.authorId === user?.id && i.status !== 'ARCHIVED');
-  const open     = ideas.filter((i) => i.status === 'OPEN' && i.authorId !== user?.id);
-  const approved = ideas.filter((i) => i.status === 'RESOLVED');
-  const archived = ideas.filter((i) => i.status === 'ARCHIVED');
+  const myIdeas = ideas.filter((i) => i.authorId === user?.id);
+  const open     = ideas.filter((i) => (i.status === 'TODO' || i.status === 'BACKLOG') && i.authorId !== user?.id);
+  const approved = ideas.filter((i) => i.status === 'DONE');
+  const archived = ideas.filter((i) => false); // Or remove this section later if UI doesn't need it
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
