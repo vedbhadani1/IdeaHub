@@ -14,7 +14,7 @@ export const initializeSocketEventHandlers = () => {
 
   eventBus.subscribe(
     INTERNAL_EVENTS.POST_UPDATED,
-    async (payload: { postId: number; departmentId: number | null; assigneeId: number | null; actorId: number; changes: any; auditLog?: any }) => {
+    async (payload: { postId: number; departmentId: number | null; assigneeId: number | null; actorId: number; changes: any; auditLog?: any; aiSummary?: any }) => {
       // 1. Broadcast scoped state changes to the department
       if (payload.departmentId) {
         emitToDepartment(payload.departmentId, SOCKET_EVENTS.WORKFLOW_STATUS_CHANGED, {
@@ -68,7 +68,7 @@ export const initializeSocketEventHandlers = () => {
         }
 
         if (targetDepartmentId) {
-          emitToDepartment(targetDepartmentId, 'workflow:summary_generated', {
+          emitToDepartment(targetDepartmentId, SOCKET_EVENTS.WORKFLOW_SUMMARY_GENERATED, {
             postId: payload.postId,
             aiSummary: payload.aiSummary
           });

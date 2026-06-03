@@ -3,6 +3,7 @@ export const SOCKET_EVENTS = {
   WORKFLOW_STATUS_CHANGED: 'workflow:statusChanged',
   DEPARTMENT_POST_CREATED: 'department:postCreated',
   TIMELINE_NEW: 'timeline:new', // Phase 4A
+  WORKFLOW_SUMMARY_GENERATED: 'workflow:summary_generated',
 } as const;
 
 export type SocketEvent = typeof SOCKET_EVENTS[keyof typeof SOCKET_EVENTS];
@@ -37,6 +38,7 @@ export interface ServerToClientEvents {
   [SOCKET_EVENTS.WORKFLOW_STATUS_CHANGED]: (payload: { postId: number, status: string, departmentId: number | null, assigneeId: number | null }) => void;
   [SOCKET_EVENTS.DEPARTMENT_POST_CREATED]: (payload: { postId: number, departmentId: number }) => void;
   [SOCKET_EVENTS.TIMELINE_NEW]: (payload: ActivityTimelineDTO & { departmentId: number | null }) => void;
+  [SOCKET_EVENTS.WORKFLOW_SUMMARY_GENERATED]: (payload: { postId: number, aiSummary: any }) => void;
 }
 
 // Events the client can send to the server
