@@ -25,14 +25,14 @@ export const initializeSocketServer = (httpServer: http.Server) => {
         return next(new Error('Authentication error: Missing token'));
       }
 
-      const decoded = jwt.verify(token, config.JWT_SECRET) as { id: number };
+      const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: number };
       
-      if (!decoded || !decoded.id) {
+      if (!decoded || !decoded.userId) {
         return next(new Error('Authentication error: Invalid payload'));
       }
 
       // Attach user to socket
-      socket.data.userId = decoded.id;
+      socket.data.userId = decoded.userId;
       next();
     } catch (err) {
       return next(new Error('Authentication error: Token invalid or expired'));
