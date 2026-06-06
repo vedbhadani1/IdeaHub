@@ -26,24 +26,26 @@ export class FeedService {
     status?: any;
     priority?: any;
     assigneeId?: number;
+    authorId?: number;
     departmentId?: number;
     search?: string;
   }): Promise<PaginatedFeedResult> {
-    const { cursor: nextCursor, limit = 20, category, status, priority, assigneeId, departmentId, search } = params;
+    const { cursor: nextCursor, limit = 20, category, status, priority, assigneeId, authorId, departmentId, search } = params;
 
     const cursorObj = nextCursor ? decodeCursor(nextCursor) : undefined;
     if (nextCursor && !cursorObj) throw new AppError('Invalid nextCursor format', 400);
 
     const where: any = {};
     if (category) where.category = category;
-    if (status) {
+    if (status && status !== 'ALL') {
       where.status = status;
-    } else {
+    } else if (status !== 'ALL') {
       // By default, exclude archived/completed posts from the main feed
       where.status = { not: 'DONE' };
     }
     if (priority) where.priority = priority;
     if (assigneeId) where.assigneeId = assigneeId;
+    if (authorId) where.authorId = authorId;
     if (departmentId) where.departmentId = departmentId;
     if (search) {
       where.OR = [

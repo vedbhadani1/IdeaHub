@@ -33,10 +33,11 @@ export const getFeedSchema = z.object({
     cursor: cursorSchema,
     limit: feedLimitSchema,
     category: z.enum(['BUG', 'IMPROVEMENT', 'SUGGESTION', 'FEATURE', 'IDEA', 'DISCUSSION']).optional(),
-    status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'BLOCKED', 'DONE']).optional(),
+    status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'BLOCKED', 'DONE', 'ALL']).optional(),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
     search: z.string().optional(), // Left in for now, ILIKE search
     assigneeId: z.union([z.string(), z.number()]).optional().transform(val => val ? Number(val) : undefined),
+    authorId: z.union([z.string(), z.number()]).optional().transform(val => val ? Number(val) : undefined),
   }).strict()
 });
 

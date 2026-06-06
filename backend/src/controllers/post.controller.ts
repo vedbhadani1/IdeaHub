@@ -84,6 +84,7 @@ export const getFeed = async (req: Request, res: Response) => {
     status: query.status,
     priority: query.priority,
     assigneeId: query.assigneeId,
+    authorId: query.authorId,
     search: query.search,
   });
 

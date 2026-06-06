@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
 import { useAuthStore } from '@/stores/auth.store';
-import { User } from '@/types';
+import { User, Post } from '@/types';
 import Avatar from '@/components/shared/Avatar';
 import Loader from '@/components/shared/Loader';
+import PostCard from '@/components/posts/PostCard';
+import { usePostStore } from '@/stores/post.store';
 
 const ProfilePage: React.FC = () => {
   const { id } = useParams();
@@ -15,6 +17,9 @@ const ProfilePage: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: '', bio: '', avatarUrl: '' });
   const [saving, setSaving] = useState(false);
+  
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
 
   const isOwnProfile = !id || Number(id) === currentUser?.id;
 
@@ -22,8 +27,9 @@ const ProfilePage: React.FC = () => {
     const fetchUser = async () => {
       setLoading(true);
       try {
+        let userToSet = null;
         if (isOwnProfile) {
-          setProfileUser(currentUser);
+          userToSet = currentUser;
           setForm({
             name: currentUser?.name || '',
             bio: currentUser?.bio || '',
@@ -31,7 +37,20 @@ const ProfilePage: React.FC = () => {
           });
         } else {
           const { data } = await api.get(`/users/${id}`);
-          setProfileUser(data);
+          userToSet = data;
+        }
+        setProfileUser(userToSet);
+        
+        if (userToSet) {
+          setPostsLoading(true);
+          try {
+            const res = await api.get(`/posts?authorId=${userToSet.id}&status=ALL`);
+            setPosts(res.data.data || []);
+          } catch (err) {
+            console.error('Failed to fetch user posts', err);
+          } finally {
+            setPostsLoading(false);
+          }
         }
       } finally {
         setLoading(false);
@@ -58,7 +77,7 @@ const ProfilePage: React.FC = () => {
   if (!profileUser) return <div className="text-center text-gray-500 py-10">User not found</div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 pb-20">
       <div className="card overflow-hidden">
         {/* Cover */}
         <div className="h-32 bg-gradient-to-r from-brand-400 to-indigo-500"></div>
@@ -122,6 +141,21 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {!editing && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Recent Posts</h2>
+          {postsLoading ? (
+            <Loader />
+          ) : posts.length > 0 ? (
+            posts.map(post => <PostCard key={post.id} post={post as any} />)
+          ) : (
+            <div className="text-gray-500 text-center py-6 bg-white rounded-lg border border-surface-border">
+              This user hasn't posted anything yet.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
