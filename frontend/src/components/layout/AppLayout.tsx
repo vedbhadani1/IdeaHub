@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
@@ -8,6 +8,7 @@ import { useNotificationStore } from '@/stores/notification.store';
 const AppLayout: React.FC = () => {
   const { fetchMe } = useAuthStore();
   const { fetch: fetchNotifications } = useNotificationStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchMe();
@@ -18,11 +19,20 @@ const AppLayout: React.FC = () => {
   }, [fetchMe, fetchNotifications]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface">
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-surface relative">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Outlet />
         </main>
       </div>

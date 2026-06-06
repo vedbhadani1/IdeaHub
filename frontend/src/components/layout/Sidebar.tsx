@@ -13,7 +13,12 @@ const NAV = [
   { to: '/profile',       icon: '👤', label: 'Profile' },
 ];
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
@@ -24,10 +29,14 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-60 flex-shrink-0 h-screen sticky top-0 bg-white border-r border-surface-border
-                      flex flex-col overflow-y-auto">
+    <aside className={`
+      fixed inset-y-0 left-0 z-50 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      md:relative md:translate-x-0 transition-transform duration-200 ease-in-out
+      w-60 flex-shrink-0 h-screen bg-white border-r border-surface-border
+      flex flex-col overflow-y-auto
+    `}>
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-surface-border">
+      <div className="px-5 py-5 border-b border-surface-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
             C
@@ -37,6 +46,9 @@ const Sidebar: React.FC = () => {
             <p className="text-xs text-gray-400">Internal Network</p>
           </div>
         </div>
+        <button className="md:hidden text-gray-500 hover:bg-gray-100 p-1 rounded" onClick={onClose}>
+          ✕
+        </button>
       </div>
 
       {/* Nav */}
@@ -45,6 +57,7 @@ const Sidebar: React.FC = () => {
           <NavLink
             key={to}
             to={to}
+            onClick={onClose}
             className={({ isActive }) =>
               `nav-link ${isActive ? 'active' : ''}`
             }
