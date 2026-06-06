@@ -13,20 +13,25 @@ export const createPost = async (req: Request, res: Response) => {
 
   let attachmentData = null;
   if (req.file) {
-    const result = await storageService.upload(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
-      'POST_ATTACHMENT',
-      false
-    );
-    attachmentData = {
-      url: result.url,
-      filename: req.file.originalname, // keeping original for display, but safe in DB
-    };
+    try {
+      const result = await storageService.upload(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        'POST_ATTACHMENT',
+        false
+      );
+      attachmentData = {
+        url: result.url,
+        filename: req.file.originalname,
+      };
+    } catch (storageErr) {
+      // Storage failed (e.g., read-only filesystem on Render) — continue without attachment
+      console.warn('Storage upload failed, continuing without attachment:', storageErr);
+    }
   }
 
-    const post = await prisma.post.create({
+  const post = await prisma.post.create({
     data: {
       title,
       description,
@@ -36,7 +41,7 @@ export const createPost = async (req: Request, res: Response) => {
       authorId,
       assigneeId: assigneeId ? Number(assigneeId) : undefined,
       departmentId: departmentId ? Number(departmentId) : undefined,
-      status: 'BACKLOG', // Phase 3B: Use WorkflowStatus
+      status: 'BACKLOG',
       attachments: attachmentData ? {
         create: [{
           url: attachmentData.url,
@@ -48,22 +53,20 @@ export const createPost = async (req: Request, res: Response) => {
     include: { author: { select: { id: true, name: true, role: true, avatarUrl: true } }, attachments: true },
   });
 
-  // Notify mentioned users
-  await mentionService.processMentions({
-    text: description,
-    authorId,
-    postId: post.id,
-  });
-
-  // Notify assignee
-  if (assigneeId && Number(assigneeId) !== authorId) {
-    await notificationService.createNotification({
-      userId: Number(assigneeId),
-      type: 'ASSIGNMENT',
-      actorId: authorId,
-      postId: post.id,
-    }, undefined);
-  }
+  // Fire-and-forget side effects — never let these crash the main response
+  Promise.all([
+    mentionService.processMentions({ text: description, authorId, postId: post.id }).catch(e =>
+      console.warn('processMentions failed:', e)
+    ),
+    assigneeId && Number(assigneeId) !== authorId
+      ? notificationService.createNotification({
+          userId: Number(assigneeId),
+          type: 'ASSIGNMENT',
+          actorId: authorId,
+          postId: post.id,
+        }, undefined).catch(e => console.warn('assignee notification failed:', e))
+      : Promise.resolve(),
+  ]).catch(() => {});
 
   return successResponse(res, 'Post created successfully', post, {}, StatusCodes.CREATED);
 };
