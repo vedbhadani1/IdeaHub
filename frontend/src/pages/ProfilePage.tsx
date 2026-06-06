@@ -44,8 +44,8 @@ const ProfilePage: React.FC = () => {
         if (userToSet) {
           setPostsLoading(true);
           try {
-            const res = await api.get(`/posts?authorId=${userToSet.id}&status=ALL`);
-            setPosts(Array.isArray(res.data) ? res.data : (res.data?.items || []));
+            const res = await api.get(`/users/${userToSet.id}/posts`);
+            setPosts(Array.isArray(res.data) ? res.data : []);
           } catch (err) {
             console.error('Failed to fetch user posts', err);
           } finally {
