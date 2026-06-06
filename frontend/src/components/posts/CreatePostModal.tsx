@@ -197,7 +197,7 @@ const CreatePostModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 }}
               >
                 <option value="">— Unassigned —</option>
-                {users.map(u => (
+                {users.filter(u => u.name !== 'Admin' && u.role !== 'ADMIN').map(u => (
                   <option key={u.id} value={u.id}>
                     {u.name} ({u.role?.replace('_', '/')})
                   </option>
