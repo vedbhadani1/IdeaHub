@@ -44,8 +44,17 @@ const ProfilePage: React.FC = () => {
         if (userToSet) {
           setPostsLoading(true);
           try {
-            const res = await api.get(`/users/${userToSet.id}/posts`);
-            setPosts(Array.isArray(res.data) ? res.data : []);
+            // Try the dedicated endpoint first; fall back to feed filter if not yet deployed
+            let posts: any[] = [];
+            try {
+              const res = await api.get(`/users/${userToSet.id}/posts`);
+              posts = Array.isArray(res.data) ? res.data : [];
+            } catch {
+              // /users/:id/posts not deployed yet — fall back
+              const res = await api.get(`/posts`, { params: { authorId: userToSet.id } });
+              posts = Array.isArray(res.data) ? res.data : [];
+            }
+            setPosts(posts);
           } catch (err) {
             console.error('Failed to fetch user posts', err);
           } finally {
