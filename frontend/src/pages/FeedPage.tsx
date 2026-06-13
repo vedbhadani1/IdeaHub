@@ -13,7 +13,7 @@ const STATUSES   = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'BLOCKED', 'D
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
 
 const FeedPage: React.FC = () => {
-  const { feed, loading, fetchFeed, reactToPost, deletePost } = usePostStore();
+  const { feed, loading, hasMore, loadingMore, fetchFeed, fetchMoreFeed, reactToPost, deletePost } = usePostStore();
   const [search, setSearch]     = useState('');
   const [category, setCategory] = useState('');
   const [status, setStatus]     = useState('');
@@ -163,6 +163,17 @@ const FeedPage: React.FC = () => {
               onDelete={(id) => deletePost(id)}
             />
           ))}
+          {hasMore && (
+            <div className="flex justify-center pt-4 pb-8">
+              <button 
+                onClick={() => fetchMoreFeed()} 
+                className="btn-secondary px-6 py-2"
+                disabled={loadingMore}
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

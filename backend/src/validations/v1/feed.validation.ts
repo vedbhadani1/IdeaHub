@@ -12,21 +12,10 @@ export const feedLimitSchema = z
     return num;
   });
 
-// Schema for the opaque base64 cursor token
-export const cursorSchema = z.string().optional().transform((val, ctx) => {
-  if (!val) return undefined;
-  
-  const decoded = decodeCursor(val);
-  if (!decoded) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid cursor format',
-    });
-    return z.NEVER;
-  }
-  
-  return decoded;
-});
+export const cursorSchema = z.string().optional().refine((val) => {
+  if (!val) return true;
+  return decodeCursor(val) !== null;
+}, 'Invalid cursor format');
 
 export const getFeedSchema = z.object({
   query: z.object({

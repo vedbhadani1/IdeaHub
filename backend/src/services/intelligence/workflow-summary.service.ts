@@ -98,9 +98,15 @@ export class WorkflowSummaryService {
    * Returns a structured JSON summary.
    */
   private async _generateSummaryInternal(postId: number): Promise<WorkflowSummaryResult> {
-    const metrics = await prisma.workflowMetrics.findUnique({ where: { postId } });
+    let metrics = await prisma.workflowMetrics.findUnique({ where: { postId } });
     if (!metrics) {
-      throw new AppError('Workflow metrics not found', StatusCodes.NOT_FOUND, 'NOT_FOUND');
+      metrics = await prisma.workflowMetrics.create({
+        data: {
+          postId,
+          slaStatus: 'HEALTHY',
+          totalTimeBlocked: 0
+        }
+      });
     }
 
     const { context, post } = await this.buildSummaryContext(postId);

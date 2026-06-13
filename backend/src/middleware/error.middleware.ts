@@ -24,7 +24,7 @@ export const errorHandler = (
   // 0. Multer File Upload Errors
   if (err instanceof multer.MulterError) {
     let message = 'Upload failed';
-    let code = err.code;
+    let code: string = err.code;
     if (err.code === 'LIMIT_FILE_SIZE') {
       message = 'File is too large. Maximum size is 10MB.';
       code = 'FILE_TOO_LARGE';

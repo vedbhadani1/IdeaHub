@@ -23,9 +23,13 @@ interface PostState {
   feed: Post[];
   current: Post | null;
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
+  nextCursor: string | null;
   lastFilters: PostFilters;
   stats: PostStats;
   fetchFeed: (filters?: PostFilters) => Promise<void>;
+  fetchMoreFeed: () => Promise<void>;
   fetchPost: (id: number, background?: boolean) => Promise<void>;
   fetchStats: () => Promise<void>;
   createPost: (payload: FormData | Record<string, unknown>) => Promise<Post>;
@@ -40,6 +44,9 @@ export const usePostStore = create<PostState>((set, get) => ({
   feed: [],
   current: null,
   loading: false,
+  loadingMore: false,
+  hasMore: false,
+  nextCursor: null,
   lastFilters: {},
   stats: {
     totalActive: 0,
@@ -57,11 +64,36 @@ export const usePostStore = create<PostState>((set, get) => ({
     );
 
     try {
-      const { data } = await api.get('/posts', { params: cleanFilters });
-      set({ feed: Array.isArray(data) ? data : (data?.items || []), loading: false });
+      const res = await api.get('/posts', { params: cleanFilters });
+      set({ 
+        feed: res.data, 
+        loading: false,
+        hasMore: (res as any).meta?.hasMore || false,
+        nextCursor: (res as any).meta?.nextCursor || null
+      });
       get().fetchStats();
     } catch {
       set({ loading: false });
+    }
+  },
+
+  fetchMoreFeed: async () => {
+    const { loadingMore, hasMore, nextCursor, lastFilters, feed } = get();
+    if (loadingMore || !hasMore || !nextCursor) return;
+
+    set({ loadingMore: true });
+    try {
+      const res = await api.get('/posts', { 
+        params: { ...lastFilters, cursor: nextCursor } 
+      });
+      set({ 
+        feed: [...feed, ...res.data], 
+        loadingMore: false,
+        hasMore: (res as any).meta?.hasMore || false,
+        nextCursor: (res as any).meta?.nextCursor || null
+      });
+    } catch {
+      set({ loadingMore: false });
     }
   },
 
